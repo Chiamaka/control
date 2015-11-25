@@ -1,5 +1,14 @@
+=begin
+TODO to be used for password encryption 
+require 'digest/sha1'
+encrypted_password= Digest::SHA1.hexdigest(password)
+salt= Digest::SHA1.hexdigest("# We add {email} as unique value and #{Time.now} as random value")
+encrypted_password= Digest::SHA1.hexdigest("Adding #{salt} to {password}")
+=end
+
+
 class AdminsController < ApplicationController
-  before_action :set_admin, only: [:show, :edit, :update, :destroy]
+  before_action :set_admin, only: [:show, :edit, :update, :destroy ]
 
   # GET /admins
   # GET /admins.json
@@ -21,6 +30,21 @@ class AdminsController < ApplicationController
   def edit
   end
 
+  #POST /admin/login
+  def login
+    respond_to do |format|
+
+      if  Admin.exists?(email: params[:email]) and Admin.exists?(password: params[:password])  
+        @admin= Admin.find_by_email(params[:email])
+        format.html { redirect_to @admin, notice: 'Admin was successfully login.' }
+        format.json { render :show, status: :show, location: @admin ,notice: 'login successful.' }
+      else  
+        format.html { render :new }
+        format.json { render json: @admin_params , status: :unprocessable_entity }
+      end
+    end
+
+  end  
   # POST /admins
   # POST /admins.json
   def create
@@ -43,7 +67,7 @@ class AdminsController < ApplicationController
     respond_to do |format|
       if @admin.update(admin_params)
         format.html { redirect_to @admin, notice: 'Admin was successfully updated.' }
-        format.json { render :show, status: :ok, location: @admin }
+        format.json { render :show, status: :ok, location: @admin  }
       else
         format.html { render :edit }
         format.json { render json: @admin.errors, status: :unprocessable_entity }
@@ -71,4 +95,8 @@ class AdminsController < ApplicationController
     def admin_params
       params.require(:admin).permit(:username, :password, :name, :security_question, :security_answer, :email, :phone, :level)
     end
-end
+
+    def admin_id
+      Admin.find_by_email(params[:email]).try(:valid_password?, params[:password])
+    end
+  end
