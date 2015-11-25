@@ -1,17 +1,23 @@
 Rails.application.routes.draw do
   
-  post  'admins/login'
+  post  'admins/signin'
   resources :transactions
   resources :banks
   resources :admins
   resources :citizens
+  #resources :sessions
         
       get 'citizen/list'
       get 'citizen/new'
       post 'citizen/create'
       post 'citizen/new'
       post 'transactions/create'  
-  root 'transactions#index'
+  root 'admins#index'
+
+  get '/login' => 'sessions#new'
+  post '/login' => 'sessions#create'
+  #post '/signin' => 'adminsignin'
+  get '/destroy' => 'sessions#destroy'
   # The priority is based upon order of creation: first created -> highest priority.
   # See how all your routes lay out with "rake routes".
 

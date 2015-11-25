@@ -1,15 +1,10 @@
-=begin
-TODO to be used for password encryption 
-require 'digest/sha1'
-encrypted_password= Digest::SHA1.hexdigest(password)
-salt= Digest::SHA1.hexdigest("# We add {email} as unique value and #{Time.now} as random value")
-encrypted_password= Digest::SHA1.hexdigest("Adding #{salt} to {password}")
-=end
+require "bcrypt"
+hashed_password = BCrypt::Password.create "my password"
 
 
 class AdminsController < ApplicationController
   before_action :set_admin, only: [:show, :edit, :update, :destroy ]
-
+  #before_filter :authorize
   # GET /admins
   # GET /admins.json
   def index
@@ -31,10 +26,10 @@ class AdminsController < ApplicationController
   end
 
   #POST /admin/login
-  def login
+  def signin
     respond_to do |format|
 
-      if  Admin.exists?(email: params[:email]) and Admin.exists?(password: params[:password])  
+      if  Admin.exists?(email: params[:email]) and Admin.exists?(password_digest: params[:password])  
         @admin= Admin.find_by_email(params[:email])
         format.html { redirect_to @admin, notice: 'Admin was successfully login.' }
         format.json { render :show, status: :show, location: @admin ,notice: 'login successful.' }
@@ -48,7 +43,7 @@ class AdminsController < ApplicationController
   # POST /admins
   # POST /admins.json
   def create
-    @admin = Admin.new(admin_params)
+    @admin =  Admin.new(admin_params)
 
     respond_to do |format|
       if @admin.save
