@@ -5,14 +5,20 @@ Rails.application.routes.draw do
   resources :banks
   resources :admins
   resources :citizens
+<<<<<<< HEAD
+=======
   #resources :sessions
+>>>>>>> cb901a8d961452830d04ad4dba543bf1b7bd76fd
         
       get 'citizen/list'
       get 'citizen/new'
       post 'citizen/create'
       post 'citizen/new'
       post 'transactions/create'  
+<<<<<<< HEAD
+=======
   root 'admins#index'
+>>>>>>> cb901a8d961452830d04ad4dba543bf1b7bd76fd
 
   get '/login' => 'sessions#new'
   post '/login' => 'sessions#create'

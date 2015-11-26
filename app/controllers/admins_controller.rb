@@ -1,6 +1,8 @@
-class AdminsController < ApplicationController
-  before_action :set_admin, only: [:show, :edit, :update, :destroy]
+require 'ostruct'
 
+class AdminsController < ApplicationController
+  before_action :set_admin, only: [:show, :edit, :update, :destroy ]
+  #before_filter :authorize
   # GET /admins
   # GET /admins.json
   def index
@@ -21,10 +23,30 @@ class AdminsController < ApplicationController
   def edit
   end
 
+  #POST /admins/signin
+  def signin
+      @admin= Admin.find_by_email(params[:email])
+      @dashboard=OpenStruct.new(:NumBanks => Admin.count , :NumCitizens => Citizen.count , :NumTransactions => Transaction.count )
+      @transactions=OpenStruct.new(:transactions =>  Transaction.all)
+      @signin_data = OpenStruct.new( :admin => @admin , :dashboard => @dashboard , :transactions => @transactions , :token => "123456" , :status => 200 , :message => "successful")
+      @signin_error =OpenStruct.new(:status => 401 , :message => "Access Denied" )
+      
+      respond_to do |format|
+      if  @admin && @admin.authenticate(params[:password])  
+        format.html { redirect_to @admin, notice: 'Admin was successfully login.' }
+        #format.json { render :show, status: :show, location: @admin ,notice: 'login successful.' }
+        format.json { render json: @signin_data, status: :unprocessable_entity }
+      else  
+        format.html { render :new }
+        format.json { render json: @signin_error , status: :unprocessable_entity }
+      end
+    end
+
+  end  
   # POST /admins
   # POST /admins.json
   def create
-    @admin = Admin.new(admin_params)
+    @admin =  Admin.new(admin_params)
 
     respond_to do |format|
       if @admin.save
@@ -43,7 +65,7 @@ class AdminsController < ApplicationController
     respond_to do |format|
       if @admin.update(admin_params)
         format.html { redirect_to @admin, notice: 'Admin was successfully updated.' }
-        format.json { render :show, status: :ok, location: @admin }
+        format.json { render :show, status: :ok, location: @admin  }
       else
         format.html { render :edit }
         format.json { render json: @admin.errors, status: :unprocessable_entity }
@@ -71,4 +93,8 @@ class AdminsController < ApplicationController
     def admin_params
       params.require(:admin).permit(:username, :password, :name, :security_question, :security_answer, :email, :phone, :level)
     end
-end
+
+    def admin_id
+      Admin.find_by_email(params[:email]).try(:valid_password?, params[:password])
+    end
+  end
